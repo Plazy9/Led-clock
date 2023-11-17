@@ -3,20 +3,45 @@
 
 LiquidCrystal_I2C lcd(0x27,16,2);  // set the LCD address to 0x27 for a 16 chars and 2 line display
 
-
 int ledPin = 13;                 // LED connected to digital pin 13
-int ditLength = 150;
-int dahLength = 350;
-int charPause = 400;
 
 #include <Wire.h>
 #include "RTClib.h"
 RTC_DS1307 RTC;
 
+// Define Connections to 74HC595
+
+// ST_CP pin 12
+const int latchPin = 8;
+// SH_CP pin 11
+const int clockPin = 12;
+// DS pin 14
+const int dataPin = 11;
+
+void ledSwitch(int numberToDisplay){
+  byte myByte = B0;
+  for (int i = 0; i<numberToDisplay; i++){
+    myByte = myByte << 1; 
+    myByte = myByte | B00000001;
+  }
+  //Serial.print(myByte, DEC);
+  digitalWrite(latchPin, LOW);
+  //delay(1000);
+  // Shift out the bits
+  shiftOut(dataPin, clockPin, MSBFIRST, myByte);
+  // ST_CP HIGH change LEDs
+  digitalWrite(latchPin, HIGH);
+}
+
 void setup()
 {
   Serial.begin(115200);
   //pinMode(ledPin, OUTPUT);      // sets the digital pin as output
+
+  //Shift register
+  pinMode(latchPin, OUTPUT);
+  pinMode(clockPin, OUTPUT);
+  pinMode(dataPin, OUTPUT);
 
   lcd.init();                      // initialize the lcd 
   // Print a message to the LCD.
@@ -66,6 +91,9 @@ void loop()
     sec = String(now.second());
   }
   lcd.print("Time: "+hour+":"+ min +":" + sec );
+
+  ledSwitch(atoi(sec.c_str())%10);
+  
 /*
   Serial.print(now.year(), DEC);
   Serial.print('/');
@@ -83,5 +111,3 @@ void loop()
   delay(1000);
 
 }
-
-
