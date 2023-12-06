@@ -17,31 +17,26 @@ const int latchPin = 8;
 const int clockPin = 12;
 // DS pin 14
 const int dataPin = 11;
+const int numberOfShiftRegisters = 2;
 
-void ledSwitch(int numberToDisplay){
-  byte myByte = B0;
-  for (int i = 0; i<numberToDisplay; i++){
-    myByte = myByte << 1; 
-    myByte = myByte | B00000001;
+#include <ShiftRegister74HC595.h>
+ShiftRegister74HC595<numberOfShiftRegisters> sr(dataPin, clockPin, latchPin);
+
+void ledSwitch(int OnLedNumber){
+  for (int i = 0; i < numberOfShiftRegisters * 8; i++) {
+    sr.set(i, LOW); // set single pin HIGH
+    //delay(200); 
   }
-  //Serial.print(myByte, DEC);
-  digitalWrite(latchPin, LOW);
-  //delay(1000);
-  // Shift out the bits
-  shiftOut(dataPin, clockPin, MSBFIRST, myByte);
-  // ST_CP HIGH change LEDs
-  digitalWrite(latchPin, HIGH);
+  for (int i = 0; i < OnLedNumber; i++) {
+    sr.set(i, HIGH); // set single pin HIGH
+    //delay(200); 
+  }  
 }
 
 void setup()
 {
   Serial.begin(115200);
   //pinMode(ledPin, OUTPUT);      // sets the digital pin as output
-
-  //Shift register
-  pinMode(latchPin, OUTPUT);
-  pinMode(clockPin, OUTPUT);
-  pinMode(dataPin, OUTPUT);
 
   lcd.init();                      // initialize the lcd 
   // Print a message to the LCD.
